@@ -1,0 +1,105 @@
+OpenProfile 0.1
+
+Date: 17 December 2011
+Version: 0.1
+Authors: Dirk Gadsden
+Copyright: 2011 Dirk Gadsden; see LICENSE.TXT for more information.
+
+
+Table of Contents
+
+1: Introduction
+2: Format
+3: Function
+4: Header
+4.1: Key
+4.2: Signature
+4.3: Nonce
+5: Handshake
+5.1: Initiation
+5.2: Post-initiation
+
+
+1: Introduction
+
+OpenProfile (abbreviated OP) is a protocol for distributed identity and authentication. Emphasizing flexibility and namespace-encapsulation data and functionality, the protocol is designed for maximum applicability and a high degree of future-proofedness.
+
+Although HTTP is the de facto-standard transport, transport agnosticism is important for providing maximum flexibility and performance. JSON is the standard for storing data; providers are encouraged to minimize any abstractions on top of this layer.
+
+2: Format
+
+All data should be formatted as JSON and sent with JSON-appropriate headers. Transports should support the create-read-update-delete object persistence pattern as closely as possible.
+
+3: Function
+
+An OpenProfile profile consists of a base JSON document providing the namespace for the document (for OpenProfile version 0.1 the namespace is "openprofile-0.1"), a provider-level unique identifier ("uid") for the profile, a list of provider end-points, and a list of profile endpoints. An example basic profile is below:
+
+{
+	"namespace": "openprofile-0.1",
+	"uid": "dirk",
+	"provider": ["http://profile.org"],
+	"profile": ["http://profile.org/dirk"],
+	"data": [...]
+}
+
+Continuing from this example, an HTTP GET request to http://profile.org/dirk should always return this document (for usability purposes, returning a styled HTML document to requests with a user-agent that concretely identifies the requester as a browser is allowed). This document is called the public version of the profile, and should always be available and always provide this information. Providers or services wishing to engage in further communication with the profile and the profile's provider must perform a handshake.
+
+4: Header
+
+Every request within a handshake will contain a header, which is a combination of a signature and a set of key-value pairs. Header keys and values may only contain ASCII letters, numbers, periods ("."), underscores ("_"), and dashes ("-"). Keys are joined to their respective values with equals ("="), and key-value pairs are separated by commas (","). The key-value pairs MUST BE IN ALPHABETICAL ORDER BY KEY. This makes it so that the signature/secret, headers, and document can be easily split apart using common limited string split functions (ie. 'data.split(":", 3)'). It is also meant to ensure that headers are only used for the small amount of extra data relating directly to the request, with document-related data stored inside the document and transport-related data stored inside the transport's own header mechanisms. You should never include any information in the header besides the specific key-value items listed in the corresponding OpenProfile version's specification.
+
+The presence or absence of a header should be tested for by checking the first character of the response document. If it is a curly brace ("{") then there is no header and the entire document should be parsed as JSON. Otherwise it should be assumed to have a header and be split into 3 parts, have its second and third parts split into key-value pairs and parsed as JSON respectively, and then have the signature in the first part verified.
+
+4.1: Key (Required)
+
+This key identifies the handshake and should be used by both parties to look up the handshake's secret. The key is a random alphanumeric string 32-256 characters long.
+
+4.2: Signature (Required)
+
+The signature is calculated by generating the rest of the document, then prepending it with the secret and a colon ("SECRET:HEADER:{...}"). The hash of that string should then be calculated and prepended to the origin document followed by a colon ("SIGNATURE:HEADER:{...}")
+
+4.3: Nonce (Optional)
+
+IN PROGRESS
+
+5: Handshake
+
+A handshake ensures that a provider (the "server") and another provider or service (the "client") are communicating over a secure (but not private) link, ie. the communications between the two cannot be tampered with nor repeated. Ideally, the handshake should be performed over HTTPS or another encrypted protocol, since the handshake is vulnerable to a man-in-the-middle attack unless it is performed over a secure channel. This is a KNOWN VULNERABILITY. However, there are more pressing problems to tackle. IF YOU ARE CONCERNED ABOUT SECURITY, PERFORM ALL REQUESTS OVER HTTPS OR SIMILAR SECURE CHANNEL AND DENY ACCESS TO ANY CLIENTS ATTEMPTING TO CONNECT OVER AN INSECURE CHANNEL. The handshake is in place not in place to protect privacy and the security of data, it is in place to make future (post-handshake) man-in-the-middle attacks more difficult and ensure message correctness and orderliness.
+
+5.1: Initiation
+
+To begin a handshake, the client generates a 32-256 character alphanumeric string called the secret. It also creates a separate random 32-256 character alphanumeric string called the key, which will be used in all subsequent requests to identify the handshake. Then it POST's a request to the /handshake/request path on the provider (http://profile.org/handshake/request).
+
+Headers are calculated using the secret passed in the document.
+
+HEADER:{
+	"namespace": "openprofile-0.1",
+	"provider": "http://service.org",
+	"secret": "...",
+	"key": "..."
+}
+
+5.2: Initiation Response
+
+A successful handshake response:
+
+HEADER:{
+	"namespace": "openprofile-0.1",
+	"provider": "http://profile.org",
+	"status": "success"
+}
+
+Following this response, both providers should store the key and secret.
+
+For a failed handshake, the server is not required to return a document with a header. (All error responses do not require headers.)
+
+{
+	"namespace": "openprofile-0.1",
+	"provider": "http://profile.org",
+	"status": "failure",
+	"message": "(Example) Invalid key"
+}
+
+5.2: Post-initiation
+
+Following a successful handshake initiation, both providers will use headers including their shared key and secret-based signture with all of their requests to each other.
