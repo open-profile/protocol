@@ -1,0 +1,1 @@
+Please see the [latest version](https://github.com/dirk/openprofile-protocol/blob/master/openprofile-0.1.txt) of the protocol for more information.
