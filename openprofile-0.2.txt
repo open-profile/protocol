@@ -1,9 +1,9 @@
-OpenProfile 0.1 FINAL
+OpenProfile 0.2 WORKING
 
-Date: 17 December 2011
-Version: 0.1
+Date: 25 December 2012
+Version: 0.2
 Authors: Dirk Gadsden
-Copyright: 2011 Dirk Gadsden; see LICENSE for more information.
+Copyright: 2012 Dirk Gadsden; see LICENSE for more information.
 
 
 Table of Contents
@@ -15,13 +15,15 @@ Table of Contents
 4.1: Key
 4.2: Signature
 4.3: Nonce
-5. Handshakes
-5.1: Unknown-Secret Provider-Provider Handshake
-5.1.1: Initiation
-5.1.2: Challenge
-5.1.3: Challenge Response
-5.1.4: Initiation Response
-5.1.5: Post-initiation
+5: Providers
+5.1: Provider Handshakes
+5.1.1: Unknown-Secret Provider-Provider Handshake
+5.1.1.1: Initiation
+5.1.1.2: Challenge
+5.1.1.3: Challenge Response
+5.1.1.4: Initiation Response
+5.1.1.5: Post-initiation
+6: Profiles
 
 
 1: Introduction
@@ -36,17 +38,17 @@ All data should be formatted as JSON and sent with JSON-appropriate headers. Tra
 
 3: Function
 
-An OpenProfile profile consists of a base JSON document providing the namespace for the document (for OpenProfile version 0.1 the namespace is "openprofile-0.1"), a provider-level unique identifier ("uid") for the profile, a list of provider end-points, and a list of profile endpoints. An example basic profile is below:
+An OpenProfile profile consists of a base JSON document providing the namespace for the document (for OpenProfile version 0.2 the namespace is "openprofile-0.2"), a provider-level unique identifier ("uid") for the profile, a list of provider end-points, and a list of profile endpoints. An example basic profile is below:
 
 {
-	"namespace": "openprofile-0.1",
+	"namespace": "openprofile-0.2",
 	"uid": "dirk",
 	"provider": ["http://profile.org"],
 	"profile": ["http://profile.org/dirk"],
 	"data": [...]
 }
 
-Continuing from this example, an HTTP GET request to http://profile.org/dirk should always return this document (for usability purposes, returning a styled HTML document to requests with a user-agent that concretely identifies the requester as a browser is allowed). This document is called the public version of the profile, and should always be available and always provide this information. Providers or services wishing to engage in further communication with the profile and the profile's provider must perform a handshake.
+Continuing from this example, an HTTP GET request to http://profile.org/dirk should always return this document (for usability purposes, returning a styled HTML document to requests with a user-agent that concretely identifies the requester as a browser is allowed). This document is called the public version of the profile, and should always be available and always provide this information. Providers or services wishing to engage in further communication with the profile and the profile's provider must perform a handshake. More information about a profile and its formatting a capabilities is provided in 6: Profile.
 
 4: Header
 
@@ -66,43 +68,45 @@ The signature is calculated by generating the rest of the document, then prepend
 
 IN PROGRESS
 
-5. Handshakes
+5: Providers
 
-5.1: Unknown-Secret Provider-Provider Handshake
+5.1: Provider Handshakes
 
-A handshake ensures that a provider (the "server") and another provider or service (the "client") are communicating over a secure (but not private) link, ie. the communications between the two cannot be tampered with nor repeated. Ideally, the handshake should be performed over HTTPS or another encrypted protocol, since the handshake is vulnerable to a man-in-the-middle attack unless it is performed over a secure channel. This is a KNOWN VULNERABILITY. However, there are more pressing problems to tackle. IF YOU ARE CONCERNED ABOUT SECURITY, PERFORM ALL REQUESTS OVER HTTPS OR SIMILAR SECURE CHANNEL AND DENY ACCESS TO ANY CLIENTS ATTEMPTING TO CONNECT OVER AN INSECURE CHANNEL. The handshake is in place not in place to protect privacy and the security of data, it is in place to make future (post-handshake) man-in-the-middle attacks more difficult and ensure message correctness and orderliness.
+5.1.1: Unknown-Secret Provider-Provider Handshake
 
-5.1.1: Initiation
+A handshake ensures that a provider (the "server") and another provider or service (the "client") are communicating over a secure (but not private) link, ie. the communications between the two cannot be tampered with nor repeated. Ideally, the handshake should be performed over HTTPS or another encrypted protocol, since the handshake is vulnerable to a man-in-the-middle attack unless it is performed over a secure channel. WARNING: This is a KNOWN VULNERABILITY. However, there are more pressing problems to tackle. IF YOU ARE CONCERNED ABOUT SECURITY, PERFORM ALL REQUESTS OVER HTTPS OR SIMILAR SECURE CHANNEL AND DENY ACCESS TO ANY CLIENTS ATTEMPTING TO CONNECT OVER AN INSECURE CHANNEL. The handshake is in place not in place to protect privacy and the security of data, it is in place to make future (post-handshake) man-in-the-middle attacks more difficult and ensure message correctness and orderliness.
+
+5.1.1.1: Initiation
 
 To begin a handshake, the client generates a 32-256 character alphanumeric string called the secret. It also creates a separate random 32-256 character alphanumeric string called the key, which will be used in all subsequent requests to identify the handshake. Then it POST's a request to the /handshake/request path on the provider (http://profile.org/handshake/request).
 
 Headers are calculated using the secret passed in the document.
 
 HEADER:{
-	"namespace": "openprofile-0.1",
+	"namespace": "openprofile-0.2",
 	"provider": "http://service.org",
 	"secret": "...",
 	"key": "..."
 }
 
-5.1.2: Challenge
+5.1.1.2: Challenge
 
 Upon receiving the /handshake/request request from the client, the server will then issue a challenge request (http://service.org/handshake/challenge) to the client to ensure that the client provider named in the request is the one initiating the handshake.
 
 The response is calculated by taking the SHA1 hash of the secret and the challenge, separated by a colon ("SECRET:CHALLENGE"). The server also generates a separate challenge string (32-256 alphanumeric characters).
 
 HEADER:{
-	"namespace": "openprofile-0.1",
+	"namespace": "openprofile-0.2",
 	"provider": "http://provider.org",
 	"challenge": "..."
 }
 
-5.1.3: Challenge Response
+5.1.1.3: Challenge Response
 
 If the client successfully validates the response, it should calculate a response to the server's challenge via the same method (SHA1 hash of "SECRET:CHALLENGE").
 
 HEADER:{
-	"namespace": "openprofile-0.1",
+	"namespace": "openprofile-0.2",
 	"provider": "http://service.org",
 	"status": "success",
 	"response": "..."
@@ -111,20 +115,20 @@ HEADER:{
 Otherwise a standard error document should be returned:
 
 {
-	"namespace": "openprofile-0.1",
+	"namespace": "openprofile-0.2",
 	"provider": "http://service.org",
 	"status": "failure",
 	"message": "(Example) Invalid response"
 }
 
-5.1.4: Initiation Response
+5.1.1.4: Initiation Response
 
 If the server-initiated challenge succeeds, the server should then respond to the still-open initiation request.
 
 A successful handshake response:
 
 HEADER:{
-	"namespace": "openprofile-0.1",
+	"namespace": "openprofile-0.2",
 	"provider": "http://profile.org",
 	"status": "success"
 }
@@ -134,12 +138,32 @@ Following this response, both providers should store the key and secret.
 For a failed handshake, the server is not required to return a document with a header. (All error responses do not require headers.)
 
 {
-	"namespace": "openprofile-0.1",
+	"namespace": "openprofile-0.2",
 	"provider": "http://profile.org",
 	"status": "failure",
 	"message": "(Example) Invalid key"
 }
 
-5.1.5: Post-initiation
+5.1.1.5: Post-initiation
 
 Following a successful handshake initiation, both providers will use headers including their shared key and secret-based signature with all of their requests to each other.
+
+6: Profiles
+
+Every representation of a profile must supply a base amount on information. For example an unauthenticated request to http://profile.org/dirk (or http://profile.org/dirk.json to force JSON response) should return:
+
+{
+	"namespace": "openprofile-0.2",
+	"uid": "dirk",
+	"provider": ["http://profile.org"],
+	"profile": ["http://profile.org/dirk"],
+	"data": [...]
+}
+
+6.1: Profile Handshakes
+
+6.1.1: Provider-Pre-Negotiated Profile-Profile Handshake
+
+Commonly know as a "friend request", this handshake establishes a trusted relationship between two profiles and their providers. WARNING: In the current implementation, a nefarious provider could take advantage of handshakes in a network to reveal information shared between two profiles to a third-party profile that was connected to one of the original two profiles.
+
+For the purposes of clarity, the profile initiating the handshake will be known as the "native" and the profile responding to the handshake will be known as the "foreigner".
