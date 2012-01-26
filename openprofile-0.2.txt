@@ -84,7 +84,7 @@ Headers are calculated using the secret passed in the document.
 
 HEADER:{
 	"namespace": "openprofile-0.2",
-	"provider": "http://service.org",
+	"provider": ["http://service.org"],
 	"secret": "...",
 	"key": "..."
 }
@@ -97,7 +97,7 @@ The response is calculated by taking the SHA1 hash of the secret and the challen
 
 HEADER:{
 	"namespace": "openprofile-0.2",
-	"provider": "http://provider.org",
+	"provider": ["http://provider.org"],
 	"challenge": "..."
 }
 
@@ -107,7 +107,7 @@ If the client successfully validates the response, it should calculate a respons
 
 HEADER:{
 	"namespace": "openprofile-0.2",
-	"provider": "http://service.org",
+	"provider": ["http://service.org"],
 	"status": "success",
 	"response": "..."
 }
@@ -116,7 +116,7 @@ Otherwise a standard error document should be returned:
 
 {
 	"namespace": "openprofile-0.2",
-	"provider": "http://service.org",
+	"provider": ["http://service.org"],
 	"status": "failure",
 	"message": "(Example) Invalid response"
 }
@@ -129,7 +129,7 @@ A successful handshake response:
 
 HEADER:{
 	"namespace": "openprofile-0.2",
-	"provider": "http://profile.org",
+	"provider": ["http://profile.org"],
 	"status": "success"
 }
 
@@ -139,7 +139,7 @@ For a failed handshake, the server is not required to return a document with a h
 
 {
 	"namespace": "openprofile-0.2",
-	"provider": "http://profile.org",
+	"provider": ["http://profile.org"],
 	"status": "failure",
 	"message": "(Example) Invalid key"
 }
@@ -166,4 +166,64 @@ Every representation of a profile must supply a base amount on information. For 
 
 Commonly know as a "friend request", this handshake establishes a trusted relationship between two profiles and their providers. WARNING: In the current implementation, a nefarious provider could take advantage of handshakes in a network to reveal information shared between two profiles to a third-party profile that was connected to one of the original two profiles.
 
-For the purposes of clarity, the profile initiating the handshake will be known as the "native" and the profile responding to the handshake will be known as the "foreigner".
+For the purposes of clarity, the profile initiating the handshake will be known as Alice and the profile responding to the handshake will be known as Bob.
+
+6.1.1.1: Initiation
+
+The native sends the following request to the foreigner at http://bob.org/bob/handshake/request:
+
+HEADER:{
+	"namespace": "openprofile-0.2",
+	"uid": "alice",
+	"provider": ["http://alice.org"],
+	"profile": ["http://alice.org/alice"]
+}
+
+6.1.1.2: Initiation Response
+
+If the provider decides to accept the initiation request (depending on Bob's settings, for example), it will respond with the following data to indicate that Bob has received the request and is now deciding on whether or not to accept:
+
+HEADER:{
+	"namespace": "openprofile-0.2",
+	"uid": "bob",
+	"provider": ["http://bob.org"],
+	"profile": ["http://bob.org/bob"],
+	"status": "success"
+}
+
+Or if denied, the server responds with:
+
+HEADER:{
+	"namespace": "openprofile-0.2",
+	"uid": "bob",
+	"provider": ["http://bob.org"],
+	"profile": ["http://bob.org/bob"],
+	"status": "failure",
+	"message": "(Example) Profile not found/Profile not accepting new requests"
+}
+
+6.1.1.3: Confirm
+
+Once Bob has had time to review the request, he can choose to confirm or deny the handshake. To confirm, he sends the following request back to Alice at http://alice.org/alice/handshake/confirm:
+
+HEADER:{
+	"namespace": "openprofile-0.2",
+	"uid": "bob",
+	"provider": ["http://bob.org"],
+	"profile": ["http://bob.org/bob"]
+}
+
+6.1.1.4: Deny
+
+To deny the handshake, Bob sends the request to http://alice.org/alice/handshake/deny:
+
+HEADER:{
+	"namespace": "openprofile-0.2",
+	"uid": "bob",
+	"provider": ["http://bob.org"],
+	"profile": ["http://bob.org/bob"]
+}
+
+6.1.1.5: Lifecycle
+
+A request that is not confirmed or denied within 72 hours should be considered denied.
