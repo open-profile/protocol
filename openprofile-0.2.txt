@@ -1,6 +1,6 @@
 OpenProfile 0.2 WORKING
 
-Date: 25 December 2012
+Date: 26 December 2012
 Version: 0.2
 Authors: Dirk Gadsden
 Copyright: 2012 Dirk Gadsden; see LICENSE for more information.
@@ -24,6 +24,13 @@ Table of Contents
 5.1.1.4: Initiation Response
 5.1.1.5: Post-initiation
 6: Profiles
+6.1: Profile Handshakes
+6.1.1: Provider-Pre-Negotiated Profile-Profile Handshake
+6.1.1.1: Initiation
+6.1.1.2: Initiation Response
+6.1.1.3: Confirm
+6.1.1.4: Deny
+6.1.1.5: Lifecycle
 
 
 1: Introduction
