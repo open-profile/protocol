@@ -28,7 +28,7 @@ Table of Contents
 6.1.1: Provider-Pre-Negotiated Profile-Profile Handshake
 6.1.1.1: Initiation
 6.1.1.2: Initiation Response
-6.1.1.3: Confirm
+6.1.1.3: Accept
 6.1.1.4: Deny
 6.1.1.5: Lifecycle
 
@@ -209,9 +209,9 @@ HEADER:{
 	"message": "(Example) Profile not found/Profile not accepting new requests"
 }
 
-6.1.1.3: Confirm
+6.1.1.3: Accept
 
-Once Bob has had time to review the request, he can choose to confirm or deny the handshake. To confirm, he sends the following request back to Alice at http://alice.org/alice/handshake/confirm:
+Once Bob has had time to review the request, he can choose to accept or deny the handshake. To accept, he sends the following request back to Alice at http://alice.org/alice/handshake/accept:
 
 HEADER:{
 	"namespace": "openprofile-0.2",
@@ -233,4 +233,4 @@ HEADER:{
 
 6.1.1.5: Lifecycle
 
-A request that is not confirmed or denied within 72 hours should be considered denied.
+A request that is not accepted or denied within 72 hours should be considered denied.
