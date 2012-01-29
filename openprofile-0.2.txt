@@ -24,13 +24,15 @@ Table of Contents
 5.1.1.4: Initiation Response
 5.1.1.5: Post-initiation
 6: Profiles
-6.1: Profile Handshakes
+6.1: Handshakes
 6.1.1: Provider-Pre-Negotiated Profile-Profile Handshake
 6.1.1.1: Initiation
 6.1.1.2: Initiation Response
 6.1.1.3: Accept
 6.1.1.4: Deny
 6.1.1.5: Lifecycle
+6.2: Data
+6.2.1: Objects
 
 
 1: Introduction
@@ -167,7 +169,7 @@ Every representation of a profile must supply a base amount on information. For 
 	"data": [...]
 }
 
-6.1: Profile Handshakes
+6.1: Handshakes
 
 6.1.1: Provider-Pre-Negotiated Profile-Profile Handshake
 
@@ -234,3 +236,25 @@ HEADER:{
 6.1.1.5: Lifecycle
 
 A request that is not accepted or denied within 72 hours should be considered denied.
+
+6.2: Data
+
+A profile can optionally contain a data attribute which stores namespaced data objects to add additional functionality and information to the profile. The data attribute must either not be present, null, or an array of objects.
+
+6.2.1: Objects
+
+A basic data object only needs to have one attribute: namespace. Each object must have a unique namespace and conform to the specification laid out by that namespace. For example:
+
+{
+	"namespace": "openprofile-0.2",
+	"uid": "bob",
+	"provider": ["http://bob.org"],
+	"profile": ["http://bob.org/bob"],
+	"data": [
+		{
+			"namespace": "openprofile-empty-1.0"
+		}
+	]
+}
+
+The special "openprofile-empty" namespace (with default version 1.0) is a special namespace for a data object containing only the namespace attribute.
